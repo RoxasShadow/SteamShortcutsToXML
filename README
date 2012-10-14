@@ -1,0 +1,1 @@
+Tool written in C# required by Vaporizza: parses the shortcuts.vdf Steam configuration file and create a file with the contents formatted in XML.
