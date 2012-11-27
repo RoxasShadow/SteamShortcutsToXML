@@ -39,20 +39,24 @@ namespace SteamShortcutsToXML
             return Directory.GetDirectories(path)[0];
         }
 
-        static void Main(string[] args)
+        static Hashtable GetGamesIDs(string path)
         {
-            string steam = GetSteamFolder();
-            if (steam == null)
+            Hashtable gamesid = new Hashtable();
+            string line;
+            StreamReader reader = new StreamReader(path);
+            while ((line = reader.ReadLine()) != null)
             {
-                Console.WriteLine("Steam folder not found.");
-                Console.ReadLine();
-                return;
+                string[] assoc = Regex.Split(line, "\"		\"");
+                if (assoc.Length == 2)
+                    gamesid[assoc[1].Replace('"', ' ').Trim()] = assoc[0].Replace('"', ' ').Trim();
             }
+            return gamesid;
+        }
 
-            string input = GetSteamUserID(steam + "\\userdata\\") + "\\config\\shortcuts.vdf";
-            string output = steam + "\\shortcuts.xml";
+        static Hashtable GetGames(string path)
+        {
 
-            string file = File.ReadAllText(input);
+            string file = File.ReadAllText(path);
             file = Regex.Replace(file, @"\x01", "<tag>");
             file = Regex.Replace(file, @"\x00", "\n");
             file = Regex.Replace(file, @"\b", "");
@@ -95,16 +99,45 @@ namespace SteamShortcutsToXML
                 }
             }
 
-            string[] value;
-            string xml = "<games>\n";
-            foreach (DictionaryEntry pair in gamelist)
+            return gamelist;
+        }
+
+
+        static void Main(string[] args)
+        {
+            string steam = GetSteamFolder();
+            if (steam == null)
             {
-                value = (string[])pair.Value;
-                xml += "\t<game>\n";
-                xml += "\t\t<name>" + pair.Key.ToString().Trim() + "</name>\n";
-                xml += "\t\t<exe>" + value[0].Trim() + "</exe>\n";
-                xml += "\t\t<dir>" + value[1].Trim() + "</dir>\n";
-                xml += "\t</game>\n";
+                Console.WriteLine("Steam folder not found.");
+                Console.ReadLine();
+                return;
+            }
+
+            string userid   = GetSteamUserID(steam + "\\userdata\\");
+
+            string inputid  = userid + "\\760\\screenshots.vdf";
+            string input    = userid + "\\config\\shortcuts.vdf";
+            string output   = steam + "\\shortcuts.xml";
+
+            Hashtable gamesid = GetGamesIDs(inputid);
+            Hashtable games   = GetGames(input);
+            Console.WriteLine(games.Count.ToString());
+
+            string[] value;
+            string name, id;
+            string xml = "<games>\n";
+            foreach (DictionaryEntry pair in games)
+            {
+                value = (string[]) pair.Value;
+                name  = pair.Key.ToString().Trim();
+                id    = gamesid.ContainsKey(name) ? gamesid[name].ToString() : "";
+
+                xml   += "\t<game>\n";
+                xml   += "\t\t<name>" + name            + "</name>\n";
+                xml   += "\t\t<exe>"  + value[0].Trim() + "</exe>\n";
+                xml   += "\t\t<dir>"  + value[1].Trim() + "</dir>\n";
+                xml   += "\t\t<id>"   + id              + "</id>\n";
+                xml   += "\t</game>\n";
             }
             xml += "</games>\n";
 
