@@ -76,7 +76,6 @@ namespace SteamShortcutsToXML
                         go = "Exe";
                     if (string.Equals(games[line], "<tag>StartDir", StringComparison.CurrentCultureIgnoreCase))
                         go = "StartDir";
-                    Console.WriteLine(games[line]);
                     continue;
                 }
 
