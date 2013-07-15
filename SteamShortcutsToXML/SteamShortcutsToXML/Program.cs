@@ -55,7 +55,6 @@ namespace SteamShortcutsToXML
 
         static Hashtable GetGames(string path)
         {
-
             string file = File.ReadAllText(path);
             file = Regex.Replace(file, @"\x01", "<tag>");
             file = Regex.Replace(file, @"\x00", "\n");
@@ -71,12 +70,13 @@ namespace SteamShortcutsToXML
             {
                 if (go == "")
                 {
-                    if (games[line] == "<tag>AppName")
+                    if (string.Equals(games[line], "<tag>AppName", StringComparison.CurrentCultureIgnoreCase))
                         go = "AppName";
-                    else if (games[line] == "<tag>Exe")
+                    if (string.Equals(games[line], "<tag>Exe", StringComparison.CurrentCultureIgnoreCase))
                         go = "Exe";
-                    else if (games[line] == "<tag>StartDir")
+                    if (string.Equals(games[line], "<tag>StartDir", StringComparison.CurrentCultureIgnoreCase))
                         go = "StartDir";
+                    Console.WriteLine(games[line]);
                     continue;
                 }
 
